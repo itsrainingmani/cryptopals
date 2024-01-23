@@ -114,6 +114,13 @@ pub fn hex_to_bytes(s: &str) -> Option<Vec<u8>> {
     }
 }
 
+pub fn bytes_to_hex(v: Vec<u8>) -> String {
+    v.iter()
+        .map(|b| format!("{:02x}", b))
+        .collect::<Vec<_>>()
+        .join(" ")
+}
+
 pub fn score(v: &Vec<u8>) -> f64 {
     // let mut score = 0.;
     // let alphabet = "abcdefghijklmnopqrstuvwxyz";

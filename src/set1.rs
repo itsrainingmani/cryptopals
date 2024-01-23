@@ -61,3 +61,19 @@ pub fn challenge4() {
         String::from_utf8(high_score.1).unwrap()
     );
 }
+
+// Repeating key XOR
+pub fn challenge5() {
+    let phrase = r#"Burning 'em, if you ain't quick and nimble
+I go crazy when I hear a cymbal"#;
+
+    let key = "ICE";
+
+    let mut encrypted_xor: Vec<u8> = Vec::new();
+
+    for (i, j) in phrase.bytes().zip(key.bytes().cycle()) {
+        encrypted_xor.push(i ^ j);
+    }
+
+    println!("{}", utils::bytes_to_hex(encrypted_xor));
+}
