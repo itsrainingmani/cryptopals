@@ -1,3 +1,5 @@
+use std::collections::HashSet;
+
 use crate::utils::{self, xor_single};
 use base64::prelude::*;
 use openssl::symm::{decrypt, Cipher};
@@ -152,4 +154,31 @@ pub fn challenge7() {
     let decrypted = decrypt(cipher, &key, None, &data).unwrap();
 
     println!("{}", String::from_utf8(decrypted).unwrap());
+}
+
+pub fn challenge8() {
+    let input = std::fs::read_to_string("inputs/challenge8.txt").unwrap();
+    let list_hex_snippets: Vec<&str> = input.trim().split('\n').collect();
+    // let mut byte_strings = Vec::new();
+
+    let mut hashed_set: HashSet<Vec<u8>> = HashSet::new();
+    let mut idx_of_ecb = 0;
+    for (idx, snippet) in list_hex_snippets.iter().enumerate() {
+        // byte_strings.push(utils::hex_to_bytes(snippet).unwrap());
+        let byte_str = utils::hex_to_bytes(snippet).unwrap();
+        for chunk in byte_str.chunks(16) {
+            hashed_set.insert(chunk.to_vec());
+        }
+
+        if hashed_set.len() != (snippet.len() % 16) {
+            idx_of_ecb = idx;
+        }
+
+        hashed_set.clear();
+    }
+
+    println!(
+        "Snippet encrypted with ECB at {} is - \n{}",
+        idx_of_ecb, list_hex_snippets[idx_of_ecb]
+    );
 }
