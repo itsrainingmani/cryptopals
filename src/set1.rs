@@ -1,7 +1,6 @@
-use std::ops::BitXor;
-
 use crate::utils::{self, xor_single};
 use base64::prelude::*;
+use openssl::symm::{decrypt, Cipher};
 
 pub fn challenge1() {
     let hex_string = utils::hex_to_bytes("49276d206b696c6c696e6720796f757220627261696e206c696b65206120706f69736f6e6f7573206d757368726f6f6d").unwrap();
@@ -136,6 +135,21 @@ pub fn challenge6() {
     for (i, j) in input.iter().zip(xor_keys.iter().cycle()) {
         decrypted.push(*i ^ *j);
     }
+
+    println!("{}", String::from_utf8(decrypted).unwrap());
+}
+
+pub fn challenge7() {
+    let base64_input = std::fs::read_to_string("inputs/challenge7.txt")
+        .unwrap()
+        .replace("\n", "");
+
+    let data = BASE64_STANDARD.decode(base64_input).unwrap();
+    println!("Number of Bytes - {}\n", data.len());
+
+    let cipher = Cipher::aes_128_ecb();
+    let key = Vec::from(String::from("YELLOW SUBMARINE"));
+    let decrypted = decrypt(cipher, &key, None, &data).unwrap();
 
     println!("{}", String::from_utf8(decrypted).unwrap());
 }
