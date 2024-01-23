@@ -227,15 +227,15 @@ mod tests {
 
     #[test]
     fn test_block_generation() {
-        let ciphertext = vec![0, 0, 1, 2, 3];
-        let blocks = super::into_blocks(ciphertext, 4);
+        let ciphertext: Vec<u8> = vec![0, 0, 1, 2, 3];
+        let blocks = super::into_blocks(&ciphertext, 4);
         assert_eq!(blocks, vec![vec![0, 0, 1, 2], vec![3, 0, 0, 0]]);
     }
 
     #[test]
     fn test_block_transpose() {
-        let ciphertext = vec![0, 0, 1, 2, 3, 4, 5, 6];
-        let blocks = super::into_blocks(ciphertext, 4);
+        let ciphertext: Vec<u8> = vec![0, 0, 1, 2, 3, 4, 5, 6];
+        let blocks = super::into_blocks(&ciphertext, 4);
         let transposed = super::transpose_blocks(blocks, 4);
         // println!("{:?}", transposed);
         assert_eq!(
