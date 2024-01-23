@@ -1,4 +1,7 @@
-use std::collections::HashMap;
+use std::{
+    collections::HashMap,
+    ops::{BitAnd, BitOr, BitXor},
+};
 
 pub fn char_frequencies() -> HashMap<u8, f64> {
     HashMap::from([
@@ -155,6 +158,48 @@ pub fn score(v: &Vec<u8>) -> f64 {
     score
 }
 
+pub fn hamming(s1: &[u8], s2: &[u8]) -> u32 {
+    // if the strings have different lengths, then we start the hamming distance with that difference
+    // Bitwise XOR is 1 if the bits are different and 0 if the bits are the same
+
+    s1.iter()
+        .zip(s2.iter())
+        .fold((s1.len().abs_diff(s2.len())) as u32, |sum: u32, (a, b)| {
+            sum + a.bitxor(b).count_ones()
+        })
+}
+
+pub fn into_blocks(ciphertext: &Vec<u8>, keysize: usize) -> Vec<Vec<u8>> {
+    let mut blocks_vec = Vec::new();
+
+    for c in ciphertext.chunks(keysize) {
+        if c.len() != keysize {
+            let mut padded = Vec::from(c);
+            padded.extend(vec![0; keysize - c.len()]);
+            blocks_vec.push(padded);
+        } else {
+            blocks_vec.push(c.to_vec());
+        }
+    }
+
+    blocks_vec
+}
+
+pub fn transpose_blocks(blocks: Vec<Vec<u8>>, keysize: usize) -> Vec<Vec<u8>> {
+    let mut transposed = Vec::new();
+
+    for i in 0..keysize {
+        let transpo_block = blocks
+            .iter()
+            .map(|v| *v.get(i).unwrap())
+            .collect::<Vec<u8>>();
+
+        transposed.push(transpo_block);
+    }
+
+    transposed
+}
+
 pub fn xor_single(i: &Vec<u8>, by: u8) -> Vec<u8> {
     i.iter().map(|x| *x ^ by).collect::<Vec<u8>>()
 }
@@ -172,5 +217,30 @@ mod tests {
         for i in input.iter().zip(xored) {
             println!("{} ^ 88 - {}", i.0, i.1);
         }
+    }
+
+    #[test]
+    fn test_hamming_distance() {
+        let dist = super::hamming("this is a test".as_bytes(), "wokka wokka!!!".as_bytes());
+        assert_eq!(dist, 37);
+    }
+
+    #[test]
+    fn test_block_generation() {
+        let ciphertext = vec![0, 0, 1, 2, 3];
+        let blocks = super::into_blocks(ciphertext, 4);
+        assert_eq!(blocks, vec![vec![0, 0, 1, 2], vec![3, 0, 0, 0]]);
+    }
+
+    #[test]
+    fn test_block_transpose() {
+        let ciphertext = vec![0, 0, 1, 2, 3, 4, 5, 6];
+        let blocks = super::into_blocks(ciphertext, 4);
+        let transposed = super::transpose_blocks(blocks, 4);
+        // println!("{:?}", transposed);
+        assert_eq!(
+            transposed,
+            vec![vec![0, 3], vec![0, 4], vec![1, 5], vec![2, 6]]
+        );
     }
 }

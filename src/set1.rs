@@ -1,3 +1,5 @@
+use std::ops::BitXor;
+
 use crate::utils::{self, xor_single};
 use base64::prelude::*;
 
@@ -76,4 +78,64 @@ I go crazy when I hear a cymbal"#;
     }
 
     println!("{}", utils::bytes_to_hex(encrypted_xor));
+}
+
+// Break repeating-key XOR
+pub fn challenge6() {
+    let base64_input = std::fs::read_to_string("inputs/challenge6.txt")
+        .unwrap()
+        .replace("\n", "");
+
+    let input = BASE64_STANDARD.decode(base64_input).unwrap();
+    println!("Number of Bytes - {}", input.len());
+
+    let mut normed_keysizes: Vec<(usize, f32)> = vec![];
+
+    // For each KEYSIZE, take the first KEYSIZE worth of bytes, and the second KEYSIZE worth of bytes, and find the edit distance between them. Normalize this result by dividing by KEYSIZE.
+    for keysize in 2..=40 {
+        let keyblocks = [&input[0..keysize], &input[keysize..(keysize * 2)]];
+
+        let mut hamming_distances = Vec::new();
+        for blk in keyblocks {
+            for chunk in input.chunks(keysize) {
+                hamming_distances.push(utils::hamming(chunk, blk));
+            }
+        }
+
+        let avg_dist =
+            hamming_distances.iter().sum::<u32>() as f32 / hamming_distances.len() as f32;
+        let normalized = avg_dist / keysize as f32;
+
+        normed_keysizes.push((keysize, normalized));
+    }
+    // Unstable in-place sorting using the f32 totally ordered comparator function
+    normed_keysizes.sort_unstable_by(|a, b| a.1.total_cmp(&b.1));
+    // println!("{:?}", normed_keysizes);
+
+    // let potential_keysizes: Vec<usize> = normed_keysizes[0..3].iter().map(|(k, _e)| *k).collect();
+    let potential_key = normed_keysizes.get(0).unwrap().0;
+    let mut xor_keys: Vec<u8> = vec![];
+    let blocks = utils::into_blocks(&input, potential_key);
+    let transposed = utils::transpose_blocks(blocks, potential_key);
+
+    for blk in transposed {
+        let mut high_score = (1000000., 0);
+        for ord in 32..=126 {
+            let xored_bytes = xor_single(&blk, ord as u8);
+            let cur_score = utils::score(&xored_bytes);
+
+            if cur_score < high_score.0 {
+                high_score = (cur_score, ord as u8);
+            }
+        }
+        xor_keys.push(high_score.1);
+    }
+    println!("{:?}", String::from_utf8(xor_keys.clone()).unwrap());
+
+    let mut decrypted = Vec::new();
+    for (i, j) in input.iter().zip(xor_keys.iter().cycle()) {
+        decrypted.push(*i ^ *j);
+    }
+
+    println!("{}", String::from_utf8(decrypted).unwrap());
 }
