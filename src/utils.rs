@@ -204,8 +204,27 @@ pub fn xor_single(i: &Vec<u8>, by: u8) -> Vec<u8> {
     i.iter().map(|x| *x ^ by).collect::<Vec<u8>>()
 }
 
-mod tests {
+pub fn pkcs7_padding(block: String, block_length: usize) -> String {
+    // Given a block, pad the boock to a specific block length but appending the number of
+    // bytes of padding to the end of the block.
 
+    let mut block_bytes = block.into_bytes();
+
+    let remainder = block_length.rem_euclid(block_bytes.len());
+
+    let mut padding: Vec<u8> = Vec::new();
+
+    for _ in 0..remainder {
+        // let single_padding_byte = format!("{:#x}", remainder as u8);
+        padding.push(remainder as u8);
+    }
+
+    block_bytes.append(&mut padding);
+
+    String::from_utf8(block_bytes).unwrap()
+}
+
+mod tests {
     #[test]
     fn test_single_xor() {
         let input =
@@ -242,5 +261,21 @@ mod tests {
             transposed,
             vec![vec![0, 3], vec![0, 4], vec![1, 5], vec![2, 6]]
         );
+    }
+
+    #[test]
+    fn test_pkcs7_padding() {
+        let input_block = String::from("YELLOW SUBMARINE");
+        let padded_length: usize = 20;
+
+        // println!(
+        //     "{}",
+        //     crate::utils::pkcs7_padding(input_block, padded_length)
+        // );
+
+        assert_eq!(
+            "YELLOW SUBMARINE\x04\x04\x04\x04",
+            crate::utils::pkcs7_padding(input_block, padded_length)
+        )
     }
 }
