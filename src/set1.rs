@@ -4,11 +4,13 @@ use crate::utils::{self, xor_single};
 use base64::prelude::*;
 use openssl::symm::{decrypt, Cipher};
 
+// Convert hex to base64
 pub fn challenge1() {
     let hex_string = utils::hex_to_bytes("49276d206b696c6c696e6720796f757220627261696e206c696b65206120706f69736f6e6f7573206d757368726f6f6d").unwrap();
     println!("{:?}", BASE64_STANDARD.encode(hex_string));
 }
 
+// Fixed XOR
 pub fn challenge2() {
     let s1 = utils::hex_to_bytes("1c0111001f010100061a024b53535009181c").unwrap();
     let s2 = utils::hex_to_bytes("686974207468652062756c6c277320657965").unwrap();
@@ -18,6 +20,7 @@ pub fn challenge2() {
     println!("{}", String::from_utf8(xored_bytes).unwrap());
 }
 
+// Single-byte XOR Cipher
 pub fn challenge3() {
     let decoded =
         utils::hex_to_bytes("1b37373331363f78151b7f2b783431333d78397828372d363c78373e783a393b3736")
@@ -41,6 +44,7 @@ pub fn challenge3() {
     );
 }
 
+// Detect Single-character XOR
 pub fn challenge4() {
     let input_file = std::fs::read_to_string("inputs/challenge4.txt").unwrap();
 
@@ -65,7 +69,7 @@ pub fn challenge4() {
     );
 }
 
-// Repeating key XOR
+// Implement Repeating key XOR
 pub fn challenge5() {
     let phrase = r#"Burning 'em, if you ain't quick and nimble
 I go crazy when I hear a cymbal"#;
@@ -141,6 +145,7 @@ pub fn challenge6() {
     println!("{}", String::from_utf8(decrypted).unwrap());
 }
 
+// AES in ECB Mode
 pub fn challenge7() {
     let base64_input = std::fs::read_to_string("inputs/challenge7.txt")
         .unwrap()
@@ -156,6 +161,7 @@ pub fn challenge7() {
     println!("{}", String::from_utf8(decrypted).unwrap());
 }
 
+// Detect AES in ECB Mode
 pub fn challenge8() {
     let input = std::fs::read_to_string("inputs/challenge8.txt").unwrap();
     let list_hex_snippets: Vec<&str> = input.trim().split('\n').collect();
