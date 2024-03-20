@@ -1,7 +1,81 @@
-use std::{
-    collections::HashMap,
-    ops::{BitAnd, BitOr, BitXor},
-};
+use std::{collections::HashMap, ops::BitXor};
+
+#[derive(Clone)]
+pub struct AesContext {
+    key: [u8; 16],
+}
+
+impl AesContext {
+    fn new(key: &[u8]) -> Self {
+        Self {
+            key: key.try_into().unwrap(),
+        }
+    }
+
+    // Decrypt a block of data using AES-ECB Mode
+    fn decrypt(&self, input: &[u8]) -> Vec<u8> {
+        let mut output = vec![0; 16];
+        self.key.iter().enumerate().for_each(|(i, b)| {
+            output[i] = *b ^ input[i % 16];
+        });
+        output
+    }
+}
+
+pub fn decrypt_ecb(input: Vec<u8>, key: Vec<u8>) -> Vec<u8> {
+    let ctx = AesContext::new(key.as_slice());
+
+    let mut output = Vec::new();
+
+    input.chunks(16).for_each(|b| {
+        let mut inp = b.to_vec();
+        let num_padding_bytes = 16 - b.len() % 16;
+        if b.len() < 16 {
+            inp.extend(vec![0u8; num_padding_bytes]);
+        }
+        output.extend(ctx.decrypt(&inp));
+    });
+
+    output
+}
+
+pub fn aes_ecb_decrypt(input: &[u8], key: &[u8]) -> Vec<u8> {
+    // Initialize the AES context
+    let mut aes = [0u8; 16];
+    for i in 0..15 {
+        aes[i] = key[i];
+    }
+
+    // Perform ECB mode decryption
+    let mut output = Vec::new();
+    let mut remaining = input.len() % 16;
+    let mut current_block = [0u8; 16];
+
+    for block in input.chunks(16) {
+        // Handle the case where the input is not exactly divisible into 16-byte chunks
+        if remaining > 0 {
+            current_block[remaining - 1] = block[0];
+            remaining -= 1;
+        }
+
+        // Decrypt the current block
+        for i in 0..15 {
+            current_block[i] = block[i] ^ aes[i];
+        }
+
+        output.extend(current_block.into_iter());
+
+        remaining = 0;
+    }
+
+    // Handle the remaining bytes, if any
+    if remaining > 0 {
+        current_block[remaining - 1] = input[input.len() - 1];
+        output.extend(current_block.into_iter());
+    }
+
+    output
+}
 
 pub fn char_frequencies() -> HashMap<u8, f64> {
     HashMap::from([

@@ -156,7 +156,9 @@ pub fn challenge7() {
 
     let cipher = Cipher::aes_128_ecb();
     let key = Vec::from(String::from("YELLOW SUBMARINE"));
-    let decrypted = decrypt(cipher, &key, None, &data).unwrap();
+    // let decrypted = utils::decrypt_ecb(data, key);
+    let decrypted = utils::aes_ecb_decrypt(data.as_slice(), key.as_slice());
+    // let decrypted = decrypt(cipher, &key, None, &data).unwrap();
 
     println!("{}", String::from_utf8(decrypted).unwrap());
 }
